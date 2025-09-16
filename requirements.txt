@@ -4,7 +4,7 @@ async-timeout==5.0.1
 attrs==25.3.0
 autobahn==24.4.2
 Automat==25.4.16
-backports.asyncio.runner==1.2.0
+backports.asyncio-runner==1.0.0; python_version < "3.11"
 billiard==4.2.1
 celery==5.5.3
 cffi==1.17.1
