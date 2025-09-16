@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Página de Controlo</h1>
+
+<div>
+  <button id="btnPing">PING</button>
+  <input id="cmdInput" placeholder="Digite comando" />
+  <button id="btnCustom">Enviar</button>
+  <pre id="resp"></pre>
+</div>
+
+<!-- Notebook Voilà (telemetria/visuais) -->
+<iframe src="http://localhost:8866/voila/render/control.ipynb"
+        style="width:100%; height:600px; border:none; margin-top:1rem;"></iframe>
+
+<script>
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+const csrftoken = getCookie('csrftoken');
+const resp = document.getElementById('resp');
+
+async function sendCmd(cmd) {
+  resp.textContent = "Enviando...";
+  const r = await fetch("{% url 'api-command' %}", {
+    method: "POST",
+    headers: {"Content-Type":"application/json","X-CSRFToken": csrftoken},
+    body: JSON.stringify({cmd})
+  });
+  const data = await r.json();
+  resp.textContent = JSON.stringify(data, null, 2);
+}
+document.getElementById('btnPing').onclick = () => sendCmd("PING");
+document.getElementById('btnCustom').onclick = () => {
+  const v = document.getElementById('cmdInput').value || "TEST";
+  sendCmd(v);
+};
+
+// Mantém WS aberto também aqui para validar se continua sendo o primeiro
+function wsURL(path) {
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  return `${proto}://${location.host}${path}`;
+}
+const ws = new WebSocket(wsURL("/ws/fila/"));
+ws.onmessage = (e) => {
+  const data = JSON.parse(e.data);
+  if (data.is_first === false) {
+    // perdeu prioridade -> volta para a fila
+    window.location.href = "{% url 'fila' %}";
+  }
+};
+// Ao sair da página, WS fecha e o servidor remove da fila no disconnect.
+</script>
+{% endblock %}

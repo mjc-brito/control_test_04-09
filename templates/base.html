@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{% block title %}Lab{% endblock %}</title>
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <nav>
+      {% if user.is_authenticated %}
+        Olá, {{ user.username }} — <a href="{% url 'logout' %}">Sair</a>
+      {% else %}
+        <a href="{% url 'login' %}">Entrar</a>
+      {% endif %}
+      | <a href="{% url 'home' %}">Home</a>
+      | <a href="{% url 'fila' %}">Fila</a>
+      | <a href="{% url 'controlo' %}">Controlo</a>
+    </nav>
+    <hr />
+    {% block content %}{% endblock %}
+  </body>
+</html>

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Fila</h1>
+<p>Sua posição: <span id="pos">?</span></p>
+<pre id="log"></pre>
+<script>
+const log = (msg) => document.getElementById('log').textContent = msg;
+
+function wsURL(path) {
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  return `${proto}://${location.host}${path}`;
+}
+const ws = new WebSocket(wsURL("/ws/fila/"));
+
+ws.onmessage = (e) => {
+  const data = JSON.parse(e.data);
+  if (data.posicao !== undefined) {
+    document.getElementById("pos").textContent = data.posicao ?? "-";
+    if (data.is_first) {
+      // virou primeiro -> vai para a página de controlo
+      window.location.href = "{% url 'controlo' %}";
+    }
+  } else { log(JSON.stringify(data)); }
+};
+ws.onclose = () => { /* conexão caiu; a view remove no disconnect */ };
+</script>
+{% endblock %}
